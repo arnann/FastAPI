@@ -1,0 +1,17 @@
+services:
+  sub2api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        COMMIT: custom
+        GOPROXY: https://goproxy.cn,direct
+        GOSUMDB: sum.golang.google.cn
+        NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
+    image: sub2api:custom
+
+  postgres:
+    # CentOS 7's old kernel rejects PostgreSQL fsync calls under Docker's
+    # default seccomp profile. Keep the relaxation scoped to PostgreSQL only.
+    security_opt:
+      - seccomp=unconfined
