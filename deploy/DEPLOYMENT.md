@@ -1,6 +1,6 @@
 # 自建镜像部署
 
-`custom/main` 是客制化代码主线。推送到该分支后，GitHub Actions 会构建镜像并推送到 GitHub Container Registry：
+`custom/main` 是客制化代码主线。推送代码不会构建镜像；需要发布时，在 GitHub Actions 的 `Build Custom Image` 工作流中点击 `Run workflow`，GitHub Actions 会构建镜像并推送到 GitHub Container Registry：
 
 ```text
 ghcr.io/arnann/sub2api:custom
