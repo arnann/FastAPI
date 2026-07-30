@@ -22,6 +22,8 @@ ghcr.io/arnann/sub2api:sha-<commit>
   backups/     运维备份
 ```
 
+服务器不保存 `/opt/sub2api` 或任何应用源码。代码只保留在 GitHub 仓库，由 GitHub Actions 构建为 GHCR 镜像；服务器只拉取并运行该镜像。
+
 真实密码、证书和 API Key 仅保存在服务器的 `/srv/sub2api/env/app.env`，不得提交到仓库。
 
 ## 首次使用 GHCR
