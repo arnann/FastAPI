@@ -399,18 +399,6 @@ docker compose -f docker-compose.local.yml logs -f sub2api
 
 **推荐：** 使用 `docker-compose.local.yml`（脚本部署）以便更轻松地管理数据。
 
-#### 启用“数据管理”功能（datamanagementd）
-
-如需启用管理后台“数据管理”，需要额外部署宿主机数据管理进程 `datamanagementd`。
-
-关键点：
-
-- 主进程固定探测：`/tmp/sub2api-datamanagement.sock`
-- 只有该 Socket 可连通时，数据管理功能才会开启
-- Docker 场景需将宿主机 Socket 挂载到容器同路径
-
-详细部署步骤见：`deploy/DATAMANAGEMENTD_CN.md`
-
 #### 访问
 
 在浏览器中打开 `http://你的服务器IP:8080`
@@ -478,7 +466,7 @@ cd sub2api/deploy
 ./apple-container.sh status
 ```
 
-该方式面向本地开发和人工运维，不提供持续重启监管；生产部署仍推荐 Docker Compose。生命周期命令、持久化、升级和运行时限制见 [deploy/APPLE_CONTAINER.md](deploy/APPLE_CONTAINER.md)。
+该方式面向本地开发和人工运维，不提供持续重启监管；生产部署仍推荐 Docker Compose。
 
 ---
 
@@ -601,7 +589,7 @@ gateway:
 SECURITY_FORWARDED_CLIENT_IP_HEADERS=True-Client-IP,X-CDN-Client-IP
 ```
 
-请求头名称会经过合法性校验、规范化和大小写无关去重。管理员可在安全设置中动态更新列表，无需重启；新安装会持久化 YAML/环境变量默认值，旧安装缺少数据库字段时会自动回填。关闭旧版接管后，自定义头和内置原始转发头均被忽略，只使用 `server.trusted_proxies`。开启接管时必须限制源站仅允许 CDN/代理访问，并确保边缘代理覆盖所有受信客户端 IP 请求头。完整迁移规则和信任边界见 [`deploy/EDGE_SECURITY.md`](deploy/EDGE_SECURITY.md)。
+请求头名称会经过合法性校验、规范化和大小写无关去重。管理员可在安全设置中动态更新列表，无需重启；新安装会持久化 YAML/环境变量默认值，旧安装缺少数据库字段时会自动回填。关闭旧版接管后，自定义头和内置原始转发头均被忽略，只使用 `server.trusted_proxies`。开启接管时必须限制源站仅允许 CDN/代理访问，并确保边缘代理覆盖所有受信客户端 IP 请求头。
 
 **网关防御纵深建议（重点）**
 
