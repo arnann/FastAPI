@@ -1289,6 +1289,9 @@ type GatewayOpenAISchedulerConfig struct {
 
 // GatewayUsageRecordConfig 使用量记录异步队列配置
 type GatewayUsageRecordConfig struct {
+	// ExcludedUserEmails: 不写入 usage_logs 的用户邮箱列表（仍正常计费与更新配额）
+	ExcludedUserEmails []string `mapstructure:"excluded_user_emails"`
+
 	// WorkerCount: worker 初始数量（自动扩缩容开启时作为初始并发上限）
 	WorkerCount int `mapstructure:"worker_count"`
 	// QueueSize: 队列容量（有界）
@@ -1318,6 +1321,21 @@ type GatewayUsageRecordConfig struct {
 	AutoScaleCheckIntervalSeconds int `mapstructure:"auto_scale_check_interval_seconds"`
 	// AutoScaleCooldownSeconds: 自动扩缩容冷却时间（秒）
 	AutoScaleCooldownSeconds int `mapstructure:"auto_scale_cooldown_seconds"`
+}
+
+// ExcludesUserEmail reports whether usage log persistence is disabled for email.
+// Matching is case-insensitive and ignores surrounding whitespace.
+func (c GatewayUsageRecordConfig) ExcludesUserEmail(email string) bool {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return false
+	}
+	for _, excluded := range c.ExcludedUserEmails {
+		if strings.EqualFold(email, strings.TrimSpace(excluded)) {
+			return true
+		}
+	}
+	return false
 }
 
 // TLSFingerprintConfig TLS指纹伪装配置

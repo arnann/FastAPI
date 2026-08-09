@@ -198,6 +198,17 @@ security:
 # 网关配置
 # =============================================================================
 gateway:
+  # Users whose request-level usage rows are not persisted. Billing, subscription
+  # usage, and API key quota still update normally. Reports derived from usage
+  # rows will not include these users.
+  # 不持久化请求级 usage_logs 的用户邮箱；计费、订阅用量及 API Key 配额仍会
+  # 正常更新，由 usage_logs 派生的报表不会包含这些用户。邮箱匹配忽略大小写和首尾空格。
+  usage_record:
+    excluded_user_emails: []
+    # Example / 示例:
+    # excluded_user_emails:
+    #   - "privacy@example.com"
+
   # Timeout for waiting upstream response headers (seconds)
   # 等待上游响应头超时时间（秒）
   response_header_timeout: 600

@@ -148,6 +148,10 @@ func liveCallIdentity(
 	userID int64,
 	subscription *service.UserSubscription,
 ) service.LiveCallIdentity {
+	userEmail := ""
+	if apiKey.User != nil {
+		userEmail = apiKey.User.Email
+	}
 	var subscriptionID *int64
 	if subscription != nil {
 		value := subscription.ID
@@ -156,6 +160,7 @@ func liveCallIdentity(
 	return service.LiveCallIdentity{
 		APIKeyID:        apiKey.ID,
 		UserID:          userID,
+		UserEmail:       userEmail,
 		GroupID:         apiKey.GroupID,
 		SubscriptionID:  subscriptionID,
 		UserAgent:       c.GetHeader("User-Agent"),

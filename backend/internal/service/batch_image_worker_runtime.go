@@ -24,6 +24,7 @@ func NewBatchImageWorkerRuntime(worker *BatchImageWorker, cfg *config.Config) *B
 func ProvideBatchImageWorkerRuntime(
 	repo BatchImageRepository,
 	accountRepo AccountRepository,
+	userRepo UserRepository,
 	queue BatchImageQueue,
 	billingRepo UsageBillingRepository,
 	usageLogRepo UsageLogRepository,
@@ -43,6 +44,7 @@ func ProvideBatchImageWorkerRuntime(
 			Repo:         repo,
 			BillingRepo:  billingRepo,
 			UsageLogRepo: usageLogRepo,
+			UserRepo:     userRepo,
 			Pricing:      pricing,
 			AuthCache:    authCache,
 			Config:       cfg,

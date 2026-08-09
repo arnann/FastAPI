@@ -218,6 +218,7 @@ func (s *OpenAIGatewayService) CreateLiveCall(
 			AccountID:             account.ID,
 			APIKeyID:              identity.APIKeyID,
 			UserID:                identity.UserID,
+			UserEmail:             identity.UserEmail,
 			GroupID:               liveGroupID(identity.GroupID),
 			SubscriptionID:        liveGroupID(identity.SubscriptionID),
 			LeaseID:               leaseID,
@@ -810,6 +811,9 @@ func (s *OpenAIGatewayService) finalizeLiveCall(record *LiveCallRecord) {
 	}
 	s.releaseLiveLease(record.AccountID, record.UserID, record.APIKeyID, record.LeaseID)
 	if s.usageLogRepo == nil {
+		return
+	}
+	if s.cfg != nil && s.cfg.Gateway.UsageRecord.ExcludesUserEmail(record.UserEmail) {
 		return
 	}
 	duration := int(time.Since(record.CreatedAt).Milliseconds())

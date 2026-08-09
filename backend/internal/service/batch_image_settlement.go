@@ -58,6 +58,7 @@ type BatchImageSettlementService struct {
 	Repo         BatchImageRepository
 	BillingRepo  UsageBillingRepository
 	UsageLogRepo UsageLogRepository
+	UserRepo     UserRepository
 	Pricing      BatchImagePricingResolver
 	AuthCache    APIKeyAuthCacheInvalidator
 	Config       *config.Config
@@ -251,6 +252,9 @@ func (s *BatchImageSettlementService) failExhaustedSettlement(ctx context.Contex
 
 func (s *BatchImageSettlementService) recordUsageLog(ctx context.Context, job *BatchImageJob, actualCost float64, requestID string, createdAt time.Time) {
 	if s == nil || s.UsageLogRepo == nil || job == nil || job.APIKeyID == nil || job.AccountID == nil {
+		return
+	}
+	if excludesUsageLogForUserID(ctx, s.Config, s.UserRepo, job.UserID) {
 		return
 	}
 	billingMode := string(BillingModeImage)

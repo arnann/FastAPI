@@ -596,6 +596,37 @@ func writeUsageLogBestEffort(ctx context.Context, repo UsageLogRepository, usage
 	}
 }
 
+func writeUsageLogBestEffortForUser(
+	ctx context.Context,
+	cfg *config.Config,
+	user *User,
+	repo UsageLogRepository,
+	usageLog *UsageLog,
+	logKey string,
+) bool {
+	if cfg != nil && user != nil && cfg.Gateway.UsageRecord.ExcludesUserEmail(user.Email) {
+		return false
+	}
+	writeUsageLogBestEffort(ctx, repo, usageLog, logKey)
+	return true
+}
+
+func excludesUsageLogForUserID(ctx context.Context, cfg *config.Config, repo UserRepository, userID int64) bool {
+	if cfg == nil || len(cfg.Gateway.UsageRecord.ExcludedUserEmails) == 0 {
+		return false
+	}
+	// When exclusions are configured, fail closed if the asynchronous path cannot
+	// resolve the user's email. Billing has already been handled separately.
+	if repo == nil || userID <= 0 {
+		return true
+	}
+	user, err := repo.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		return true
+	}
+	return cfg.Gateway.UsageRecord.ExcludesUserEmail(user.Email)
+}
+
 // recordUsageOpts 内部选项，参数化普通计费与长上下文计费的差异点。
 type recordUsageOpts struct {
 	// 长上下文计费（仅 Gemini 路径需要）
@@ -796,8 +827,9 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 	}
 
 	if s.cfg != nil && s.cfg.RunMode == config.RunModeSimple {
-		writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.gateway")
-		logger.LegacyPrintf("service.gateway", "[SIMPLE MODE] Usage recorded (not billed): user=%d, tokens=%d", usageLog.UserID, usageLog.TotalTokens())
+		if writeUsageLogBestEffortForUser(ctx, s.cfg, user, s.usageLogRepo, usageLog, "service.gateway") {
+			logger.LegacyPrintf("service.gateway", "[SIMPLE MODE] Usage recorded (not billed): user=%d, tokens=%d", usageLog.UserID, usageLog.TotalTokens())
+		}
 		s.deferredService.ScheduleLastUsedUpdate(account.ID)
 		return nil
 	}
@@ -828,10 +860,10 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 
 	if billingErr != nil {
 		usageLog.ActualCost = 0
-		writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.gateway")
+		writeUsageLogBestEffortForUser(ctx, s.cfg, user, s.usageLogRepo, usageLog, "service.gateway")
 		return billingErr
 	}
-	writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.gateway")
+	writeUsageLogBestEffortForUser(ctx, s.cfg, user, s.usageLogRepo, usageLog, "service.gateway")
 
 	return nil
 }

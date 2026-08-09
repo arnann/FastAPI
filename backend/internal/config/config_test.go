@@ -2515,6 +2515,38 @@ func TestLoad_DefaultGatewayUsageRecordConfig(t *testing.T) {
 	if cfg.Gateway.UsageRecord.AutoScaleCooldownSeconds != 10 {
 		t.Fatalf("auto_scale_cooldown_seconds = %d, want 10", cfg.Gateway.UsageRecord.AutoScaleCooldownSeconds)
 	}
+	if len(cfg.Gateway.UsageRecord.ExcludedUserEmails) != 0 {
+		t.Fatalf("excluded_user_emails = %v, want empty", cfg.Gateway.UsageRecord.ExcludedUserEmails)
+	}
+}
+
+func TestGatewayUsageRecordConfigExcludesUserEmail(t *testing.T) {
+	cfg := GatewayUsageRecordConfig{ExcludedUserEmails: []string{
+		" privacy@example.com ",
+		"CaseSensitive@Example.com",
+	}}
+
+	require.True(t, cfg.ExcludesUserEmail("privacy@example.com"))
+	require.True(t, cfg.ExcludesUserEmail("  casesensitive@example.COM "))
+	require.False(t, cfg.ExcludesUserEmail("other@example.com"))
+	require.False(t, cfg.ExcludesUserEmail(""))
+}
+
+func TestLoadGatewayUsageRecordExcludedUserEmails(t *testing.T) {
+	resetViperWithJWTSecret(t)
+	configPath := filepath.Join(t.TempDir(), "config.yaml")
+	require.NoError(t, os.WriteFile(configPath, []byte(`gateway:
+  usage_record:
+    excluded_user_emails:
+      - arnann@163.com
+      - privacy@example.com
+`), 0o600))
+	t.Setenv("CONFIG_FILE", configPath)
+
+	cfg, err := Load()
+	require.NoError(t, err)
+	require.Equal(t, []string{"arnann@163.com", "privacy@example.com"}, cfg.Gateway.UsageRecord.ExcludedUserEmails)
+	require.True(t, cfg.Gateway.UsageRecord.ExcludesUserEmail("ARNANN@163.COM"))
 }
 
 func TestLoad_DefaultGatewayImageStreamConfig(t *testing.T) {
